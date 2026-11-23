@@ -17,7 +17,7 @@ vi.mock("~/db.server", () => ({
 }));
 
 // Test the existing results-page backend without changing it.
-import { loader } from "./routes/results.$nsheId";
+import { getCategoryIconType, loader } from "./routes/results.$nsheId";
 
 function certificationId(name: string) {
   return `cert-${name.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`;
@@ -163,5 +163,21 @@ describe("Machine certification eligibility", () => {
     expect(findMachines).toHaveBeenCalledWith(
       expect.objectContaining({ where: { isActive: true } }),
     );
+  });
+});
+
+describe("machine category icon matching", () => {
+  it.each([
+    ["Additive Manufacturing / FDM", "printing"],
+    ["Laser Engraving Lab", "laser"],
+    ["MIG & TIG Welders", "welding"],
+    ["Metal Turning (Lathes)", "lathe"],
+    ["CNC Router Lab", "machining"],
+    ["Wood Shop", "woodworking"],
+    ["Electronics and Robotics", "electronics"],
+    ["Textile / Embroidery", "textiles"],
+    ["Future Equipment Category", "tools"],
+  ] as const)("matches %s to the %s icon", (categoryName, expectedIcon) => {
+    expect(getCategoryIconType(categoryName)).toBe(expectedIcon);
   });
 });

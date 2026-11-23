@@ -1,17 +1,133 @@
 import type { LoaderFunctionArgs, MetaFunction } from "@remix-run/node";
 import { Link, useLoaderData } from "@remix-run/react";
+import type { ReactNode } from "react";
 
 import { prisma } from "~/db.server";
 
-const CATEGORY_ICONS: Record<string, string> = {
-  "3D Printing": "▲",
-  "CNC Machining": "⬡",
-  "CNC Routing": "⬡",
-  "CNC Milling": "⬡",
-  "Metal Lathe": "◎",
-  "Laser Cutting": "◈",
-  Welding: "⟡",
-};
+export type CategoryIconType =
+  | "printing"
+  | "laser"
+  | "welding"
+  | "lathe"
+  | "machining"
+  | "woodworking"
+  | "electronics"
+  | "textiles"
+  | "tools";
+
+const CATEGORY_ICON_RULES: readonly [RegExp, CategoryIconType][] = [
+  [/\b(3d|additive|filament|resin|sla|fdm|printing?|printers?)\b/i, "printing"],
+  [/\b(laser|engravers?|engraving|etching|photonics?)\b/i, "laser"],
+  [
+    /\b(weld(?:ing|ers?)?|solder(?:ing)?|brazing|fabrication|hot work)\b/i,
+    "welding",
+  ],
+  [/\b(lathes?|turning|turnery)\b/i, "lathe"],
+  [
+    /\b(cnc|mills?|milling|machines?|machining|routers?|routing|metalwork(?:ing)?|metal shop)\b/i,
+    "machining",
+  ],
+  [/\b(wood(?:work|working|shop)?|carpentry|saws?)\b/i, "woodworking"],
+  [
+    /\b(electronics?|electrical|circuits?|pcb|microcontrollers?|robotics?)\b/i,
+    "electronics",
+  ],
+  [/\b(textiles?|sewing|fabric|embroidery|apparel)\b/i, "textiles"],
+];
+
+export function getCategoryIconType(categoryName: string): CategoryIconType {
+  return (
+    CATEGORY_ICON_RULES.find(([pattern]) => pattern.test(categoryName))?.[1] ??
+    "tools"
+  );
+}
+
+function IconFrame({ children }: { children: ReactNode }) {
+  return (
+    <svg
+      aria-hidden="true"
+      className="h-5 w-5"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      {children}
+    </svg>
+  );
+}
+
+function CategoryIcon({ categoryName }: { categoryName: string }) {
+  switch (getCategoryIconType(categoryName)) {
+    case "printing":
+      return (
+        <IconFrame>
+          <path d="m12 3 8.5 4.7v8.6L12 21l-8.5-4.7V7.7L12 3Z" />
+          <path d="m3.8 7.9 8.2 4.6 8.2-4.6M12 12.5V21" />
+        </IconFrame>
+      );
+    case "laser":
+      return (
+        <IconFrame>
+          <path d="M4 10V4h6M14 20h6v-6M7 17 17 7" />
+          <path d="M16 3v2M21 8h-2M19.5 4.5l-1.4 1.4" />
+        </IconFrame>
+      );
+    case "welding":
+      return (
+        <IconFrame>
+          <path d="M12 22c4.1 0 7-3 7-7 0-3.2-2.2-5.4-4.2-7.2-.2 2.6-1.6 4.5-3.5 5.2.5-3.8-1.8-6.8-3.1-8C7.9 9.1 5 11.3 5 15c0 4 2.9 7 7 7Z" />
+          <path d="M9.5 19c0-1.8 1.1-3.1 2.7-4.5.1 1.8 2.3 2.7 2.3 4.5" />
+        </IconFrame>
+      );
+    case "lathe":
+      return (
+        <IconFrame>
+          <path d="M3 8h4l2-2h6l2 2h4v8h-4l-2 2H9l-2-2H3V8Z" />
+          <circle cx="7" cy="12" r="2" />
+          <circle cx="17" cy="12" r="2" />
+          <path d="M9 12h6" />
+        </IconFrame>
+      );
+    case "machining":
+      return (
+        <IconFrame>
+          <path d="M5 3h14v5H5zM8 8v4h8V8M12 12v4" />
+          <path d="M9 16h6l2 5H7l2-5Z" />
+        </IconFrame>
+      );
+    case "woodworking":
+      return (
+        <IconFrame>
+          <path d="m4 20 10.5-10.5 3 3L7 23M13 5l2-2 6 6-2 2" />
+          <path d="m4 14 3 3M7 11l3 3" />
+        </IconFrame>
+      );
+    case "electronics":
+      return (
+        <IconFrame>
+          <rect x="6" y="6" width="12" height="12" rx="2" />
+          <path d="M9 9h6v6H9zM9 2v4M15 2v4M9 18v4M15 18v4M2 9h4M2 15h4M18 9h4M18 15h4" />
+        </IconFrame>
+      );
+    case "textiles":
+      return (
+        <IconFrame>
+          <circle cx="6" cy="7" r="3" />
+          <circle cx="6" cy="17" r="3" />
+          <path d="m8.5 8.5 12 7.5M8.5 15.5 20.5 8M12 12l-3.5 3.5" />
+        </IconFrame>
+      );
+    default:
+      return (
+        <IconFrame>
+          <path d="M14.7 6.3a4 4 0 0 0-5-5L12 3.6 8.4 7.2 6.1 4.9a4 4 0 0 0 5 5L4 17l3 3 7.1-7.1a4 4 0 0 0 5-5L16.8 10 14.7 7.9l2.2-2.2" />
+        </IconFrame>
+      );
+  }
+}
 
 export const meta: MetaFunction<typeof loader> = ({ data }) => [
   {
@@ -310,8 +426,8 @@ export default function Results() {
                   className="overflow-hidden rounded-sm border border-[#2a2a2a] bg-[#1c1c1c]"
                 >
                   <header className="flex items-center gap-3 border-b border-[#292929] px-5 py-4 sm:px-6">
-                    <span aria-hidden="true" className="text-lg text-[#d01818]">
-                      {CATEGORY_ICONS[category.name] ?? "◆"}
+                    <span className="shrink-0 text-[#d01818]">
+                      <CategoryIcon categoryName={category.name} />
                     </span>
                     <h3 className="text-sm font-semibold uppercase tracking-[0.12em] text-white">
                       {category.name}
