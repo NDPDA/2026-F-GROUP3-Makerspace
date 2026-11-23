@@ -20,7 +20,7 @@ vi.mock("~/db.server", () => ({
 import { loader } from "./routes/results.$nsheId";
 
 function certificationId(name: string) {
-  return `cert-${name.toLowerCase().replaceAll(/[^a-z0-9]+/g, "-")}`;
+  return `cert-${name.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`;
 }
 
 // Create a test student with the supplied certifications.
