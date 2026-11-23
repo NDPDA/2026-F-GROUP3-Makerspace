@@ -1,7 +1,11 @@
 import { type LoaderFunctionArgs } from "@remix-run/node";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import * as sessionModule from "~/session.server";
+const { getUser } = vi.hoisted(() => ({
+  getUser: vi.fn(),
+}));
+
+vi.mock("~/session.server", () => ({ getUser }));
 
 import { loader } from "./admin";
 
@@ -24,12 +28,12 @@ const makeUser = (overrides: Partial<MockUser> = {}): MockUser => ({
 
 describe("admin loader", () => {
   beforeEach(() => {
-    vi.restoreAllMocks();
+    vi.resetAllMocks();
   });
 
   it("redirects unauthenticated users to login", async () => {
     // unauthenticated user is handled before the role check
-    vi.spyOn(sessionModule, "getUser").mockResolvedValue(null);
+    getUser.mockResolvedValue(null);
 
     const request = new Request("http://localhost/admin");
     const result = await loader({ request } as LoaderFunctionArgs);
@@ -44,7 +48,7 @@ describe("admin loader", () => {
 
   it("throws a 403 when a user has no role", async () => {
     // empty or missing role must be denied
-    vi.spyOn(sessionModule, "getUser").mockResolvedValue(
+    getUser.mockResolvedValue(
       makeUser({
         id: "user-2",
         email: "norole@example.com",
@@ -63,7 +67,7 @@ describe("admin loader", () => {
 
   it("allows staff users to view the admin page", async () => {
     // staff is allowed
-    vi.spyOn(sessionModule, "getUser").mockResolvedValue(
+    getUser.mockResolvedValue(
       makeUser({
         id: "user-3",
         email: "staff@example.com",
@@ -90,7 +94,7 @@ describe("admin loader", () => {
 
   it("allows admin users to view the admin page", async () => {
     // admin is allowed
-    vi.spyOn(sessionModule, "getUser").mockResolvedValue(
+    getUser.mockResolvedValue(
       makeUser({
         id: "user-4",
         email: "admin@example.com",
@@ -117,7 +121,7 @@ describe("admin loader", () => {
 
   it("allows super admin users to view the admin page", async () => {
     // super admin is allowed
-    vi.spyOn(sessionModule, "getUser").mockResolvedValue(
+    getUser.mockResolvedValue(
       makeUser({
         id: "user-5",
         email: "superadmin@example.com",
@@ -144,7 +148,7 @@ describe("admin loader", () => {
 
   it("throws a 403 for non-authorized roles", async () => {
     // non-authorized role is denied; student is not a role in this schema
-    vi.spyOn(sessionModule, "getUser").mockResolvedValue(
+    getUser.mockResolvedValue(
       makeUser({
         id: "user-6",
         email: "guest@example.com",

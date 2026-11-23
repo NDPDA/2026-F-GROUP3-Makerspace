@@ -51,7 +51,7 @@ export async function loader({ params }: LoaderFunctionArgs) {
       },
       orderBy: [{ category: { sortOrder: "asc" } }, { name: "asc" }],
     }),
-    prisma.certification?.findMany({ orderBy: { name: "asc" } }),
+    prisma.certification.findMany({ orderBy: { name: "asc" } }),
   ]);
 
   const derivedCertifications = [
